@@ -24,7 +24,7 @@ exports.addTask = async (req, res, next) => {
 
     await created_task.save();
 
-    res
+    return res
       .status(201)
       .json({ message: "Task added successfully", task: created_task });
   } catch (error) {
@@ -37,20 +37,50 @@ exports.addTask = async (req, res, next) => {
 exports.getTasks = async (req, res, next) => {
   try {
     const tasks = await Task.find();
-    res.status(200).json({ success: true, tasks: tasks });
+    return res.status(200).json({ success: true, tasks: tasks });
   } catch (error) {
     console.log(error);
-    res.send(500).json({ success: false, message: error });
+    return res.send(500).json({ success: false, message: error });
   }
 };
 
 exports.deleteTasks = async (req, res, next) => {
   try {
-  } catch (error) {}
+    const task_id = req?.params?.id;
+    const deleted_task = await Task.findOneAndDelete({ _id: task_id });
+
+    if (!deleted_task)
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal Server Error" });
+
+    return res.status(200).json({
+      success: true,
+      message: "Task Deleted Succesfully.",
+      task: deleted_task,
+    });
+  } catch (error) {
+
+  }
 };
 
 exports.updateTasks = async (req, res, next) => {
   try {
-    const updatedTask = Task.findById(taskName, updateData, {});
+    const task_id = req?.query?.id;
+    const task = req?.body?.task;
+    const updatedTask = await Task.findOneAndUpdate({ _id: task_id }, task);
+    
+
+    if (!updatedTask)
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal Server Error" });
+
+    return res.status(200).json({
+      success: true,
+      message: "Task Updated Succesfully.",
+      task: updatedTask,
+    });
+    
   } catch (error) {}
 };

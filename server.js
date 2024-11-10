@@ -6,6 +6,7 @@ const taskRouter = require('./routes/taskRoutes');
 const connectDB = require('./utils/database');
 
 app.use(cors());
+
 app.use(express.json());
 
 connectDB();
