@@ -59,17 +59,28 @@ exports.deleteTasks = async (req, res, next) => {
       message: "Task Deleted Succesfully.",
       task: deleted_task,
     });
-  } catch (error) {
-
-  }
+  } catch (error) {}
 };
 
 exports.updateTasks = async (req, res, next) => {
   try {
     const task_id = req?.query?.id;
     const task = req?.body?.task;
-    const updatedTask = await Task.findOneAndUpdate({ _id: task_id }, task);
-    
+    // let updatedTask = await Task.findOneAndUpdate(
+    //   { _id: task_id },
+    //   {
+    //     $set: task,
+    //   }
+    // );
+
+    console.log("Was here");
+
+    let updatedTask = await Task.findOne({ _id: task_id });
+    updatedTask.taskName = task?.taskName;
+    updatedTask.taskDescription = task?.taskDescription;
+    await updatedTask.save();
+
+    console.log("Upadated tasks => ", updatedTask);
 
     if (!updatedTask)
       return res
@@ -81,6 +92,5 @@ exports.updateTasks = async (req, res, next) => {
       message: "Task Updated Succesfully.",
       task: updatedTask,
     });
-    
   } catch (error) {}
 };
