@@ -15,6 +15,10 @@ const port = 4001;
 
 app.use('/task', taskRouter);
 
+app.use('/',(req, res)=>{
+    return res.status(200).json({success: true, message: "Base api hit"});
+})
+
 app.listen(port, ()=>{
     console.log(`Server is running on port ${port}`);
 });
