@@ -9,6 +9,17 @@ const Task = require("../model/taskSchema");
 
 exports.addTask = async (req, res, next) => {
   try {
+    const user = req?.user;
+    if (!user)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const userId = req?.user?._id;
+    if (!userId)
+      return res.status(500).json({
+        success: false,
+        message: "Unable to fetch user at the moment",
+      });
+
     console.log("Request Body => ", req?.body);
 
     const taskName = req?.body?.task?.taskName;
@@ -20,6 +31,7 @@ exports.addTask = async (req, res, next) => {
     const created_task = new Task({
       taskName: taskName,
       taskDescription: taskDescription,
+      user: userId,
     });
 
     await created_task.save();
@@ -36,7 +48,13 @@ exports.addTask = async (req, res, next) => {
 //get a list of all tasks
 exports.getTasks = async (req, res, next) => {
   try {
-    const tasks = await Task.find();
+    const userId = req?.user?._id;
+    if (!userId)
+      return res.status(500).json({
+        success: false,
+        message: "Unable to fetch user at the moment",
+      });
+    const tasks = await Task.find({ user: userId });
     return res.status(200).json({ success: true, tasks: tasks });
   } catch (error) {
     console.log(error);
@@ -46,8 +64,20 @@ exports.getTasks = async (req, res, next) => {
 
 exports.deleteTasks = async (req, res, next) => {
   try {
+    const userId = req?.user?._id;
+    if (!userId) {
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Unable to fetch user at the moment",
+        });
+    }
     const task_id = req?.params?.id;
-    const deleted_task = await Task.findOneAndDelete({ _id: task_id });
+    const deleted_task = await Task.findOneAndDelete({
+      _id: task_id,
+      user: userId,
+    });
 
     if (!deleted_task)
       return res
@@ -72,10 +102,23 @@ exports.updateTasks = async (req, res, next) => {
     //     $set: task,
     //   }
     // );
+    const userId = req?.user?._id;
+    if (!userId) {
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Unable to fetch user at the moment",
+        });
+    }
 
     console.log("Was here");
 
-    let updatedTask = await Task.findOne({ _id: task_id });
+    let updatedTask = await Task.findOne({ _id: task_id, user: userId });
+    if (!updatedTask)
+      return res
+        .status(500)
+        .json({ success: false, message: "Task not found" });
     updatedTask.taskName = task?.taskName;
     updatedTask.taskDescription = task?.taskDescription;
     await updatedTask.save();
